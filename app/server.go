@@ -32,15 +32,9 @@ func main() {
 	lines := strings.Split(string(readBuf), "\r\n")
 	requestLine := strings.Split(lines[0], " ")
 	path := requestLine[1]
+	responseBody := strings.TrimPrefix(path, "/")
 
-	var response string
-	switch path {
-	case "/":
-		response = "HTTP/1.1 200 OK\r\n\r\n"
-		break
-	default:
-		response = "HTTP/1.1 404 Not Found\r\n\r\n"
-	}
+	response := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(responseBody), responseBody)
 
 	_, err = conn.Write([]byte(response))
 	if err != nil {
