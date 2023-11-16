@@ -34,7 +34,14 @@ func main() {
 	path := requestLine[1]
 	responseBody := strings.TrimPrefix(path, "/")
 
-	response := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(responseBody), responseBody)
+	var response string
+	switch path {
+	case "/":
+		response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(responseBody), responseBody)
+		break
+	default:
+		response = fmt.Sprintf("HTTP/1.1 404 Not Found\r\n\r\n")
+	}
 
 	_, err = conn.Write([]byte(response))
 	if err != nil {
