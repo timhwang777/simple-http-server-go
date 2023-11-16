@@ -32,11 +32,16 @@ func main() {
 	lines := strings.Split(string(readBuf), "\r\n")
 	requestLine := strings.Split(lines[0], " ")
 	path := requestLine[1]
-	responseBody := strings.TrimPrefix(path, "/")
+	responseBody := strings.TrimPrefix(path, "/echo/")
+	examEcho := strings.Split(path, "/")
 
 	var response string
-	switch path {
-	case "/":
+	fmt.Println(responseBody)
+	fmt.Println(examEcho[1])
+	switch examEcho[1] {
+	case "":
+		response = fmt.Sprintf("HTTP/1.1 200 OK\r\n\r\n")
+	case "echo":
 		response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(responseBody), responseBody)
 		break
 	default:
