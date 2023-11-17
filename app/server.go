@@ -8,19 +8,7 @@ import (
 	"strings"
 )
 
-func main() {
-	l, err := net.Listen("tcp", "0.0.0.0:4221")
-	if err != nil {
-		fmt.Println("Failed to bind to port 4221")
-		os.Exit(1)
-	}
-
-	conn, err := l.Accept()
-	if err != nil {
-		fmt.Println("Error accepting connection: ", err.Error())
-		os.Exit(1)
-	}
-
+func handleConnection(conn net.Conn) {
 	defer conn.Close()
 
 	headerType := ""
@@ -36,6 +24,7 @@ func main() {
 		if line == "\r\n" {
 			break
 		}
+		// first line for header
 		if idx == 1 {
 			header := strings.Split(line, " ")[1]
 			fmt.Println("header: ", header)
@@ -76,11 +65,24 @@ func main() {
 	}
 
 	fmt.Println("response: ", response)
-	_, err = conn.Write([]byte(response))
+	_, err := conn.Write([]byte(response))
 	if err != nil {
 		fmt.Println("Error writing: ", err.Error())
 		os.Exit(1)
 	}
+}
 
-	return
+func main() {
+	l, err := net.Listen("tcp", "0.0.0.0:4221")
+	if err != nil {
+		fmt.Println("Failed to bind to port 4221")
+		os.Exit(1)
+	}
+
+	conn, err := l.Accept()
+	if err != nil {
+		fmt.Println("Error accepting connection: ", err.Error())
+		os.Exit(1)
+	}
+	go handleConnection(conn)
 }
