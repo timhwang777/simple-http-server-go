@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"net"
 	"os"
@@ -29,21 +30,38 @@ func main() {
 		os.Exit(1)
 	}
 
-	lines := strings.Split(string(readBuf), "\r\n")
-	requestLine := strings.Split(lines[0], " ")
-	path := requestLine[1]
-	responseBody := strings.TrimPrefix(path, "/echo/")
-	examEcho := strings.Split(path, "/")
+	headerType := ""
+	var responseBody string
+	reader := bufio.NewReader(conn)
+	for {
+		fmt.Println("Reading...")
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			break
+		}
+		if line == "\r\n" {
+			break
+		}
+		if strings.HasPrefix(line, "User-Agent: ") {
+			headerType = "User-Agent: "
+			responseBody = strings.TrimPrefix(line, "User-Agent: ")
+		}
+		if strings.HasPrefix(line, "/echo/") {
+			headerType = "echo"
+			responseBody = strings.TrimPrefix(line, "/echo/")
+		}
+		fmt.Println("Bottom Reading...")
+	}
+	fmt.Println("End reading...")
 
 	var response string
-	fmt.Println(responseBody)
-	fmt.Println(examEcho[1])
-	switch examEcho[1] {
+	switch headerType {
 	case "":
 		response = fmt.Sprintf("HTTP/1.1 200 OK\r\n\r\n")
 	case "echo":
 		response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(responseBody), responseBody)
-		break
+	case "User-Agent: ":
+		response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(responseBody), responseBody)
 	default:
 		response = fmt.Sprintf("HTTP/1.1 404 Not Found\r\n\r\n")
 	}
