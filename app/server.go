@@ -2,17 +2,20 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"net"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
-func handleConnection(conn net.Conn) {
+func handleConnection(conn net.Conn, dir string) {
 	defer conn.Close()
 
 	headerType := ""
 	var responseBody string
+	var response string
 	idx := 0
 	reader := bufio.NewReader(conn)
 	for {
@@ -38,6 +41,10 @@ func handleConnection(conn net.Conn) {
 				break
 			} else if command == "user-agent" {
 				headerType = "user-agent"
+			} else if command == "files" {
+				headerType = "files"
+				filename := strings.TrimPrefix(header, "/files/")
+				response = getandHandleFiles(conn, filename, dir)
 			} else {
 				headerType = header
 			}
@@ -50,7 +57,6 @@ func handleConnection(conn net.Conn) {
 		}
 	}
 
-	var response string
 	switch headerType {
 	case "/":
 		fmt.Println("No header")
@@ -60,6 +66,8 @@ func handleConnection(conn net.Conn) {
 		response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(responseBody), responseBody)
 	case "user-agent":
 		response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(responseBody), responseBody)
+	case "files":
+		break
 	default:
 		response = fmt.Sprintf("HTTP/1.1 404 Not Found\r\n\r\n")
 	}
@@ -72,7 +80,24 @@ func handleConnection(conn net.Conn) {
 	}
 }
 
+func getandHandleFiles(conn net.Conn, filename string, dir string) string {
+	filepath := filepath.Join(dir, filename)
+	_, err := os.Stat(filepath)
+	if os.IsNotExist(err) {
+		return "HTTP/1.1 404 Not Found\r\n\r\n"
+	}
+	content, err := os.ReadFile(filepath)
+	if err != nil {
+		return "HTTP/1.1 404 Not Found\r\n\r\n"
+	}
+
+	return fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: %d\r\n\r\n%s\r\n", len(content), string(content))
+}
+
 func main() {
+	dirFlag := flag.String("directory", ".", "the directory of static file to host")
+	flag.Parse()
+
 	l, err := net.Listen("tcp", "0.0.0.0:4221")
 	if err != nil {
 		fmt.Println("Failed to bind to port 4221")
@@ -85,6 +110,6 @@ func main() {
 			fmt.Println("Error accepting connection: ", err.Error())
 			os.Exit(1)
 		}
-		go handleConnection(conn)
+		go handleConnection(conn, *dirFlag)
 	}
 }
