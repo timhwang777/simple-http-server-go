@@ -63,7 +63,7 @@ func main() {
 
 	var response string
 	switch headerType {
-	case "":
+	case "/":
 		fmt.Println("No header")
 		response = fmt.Sprintf("HTTP/1.1 200 OK\r\n\r\n")
 	case "echo":
