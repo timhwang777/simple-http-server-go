@@ -23,18 +23,12 @@ func main() {
 
 	defer conn.Close()
 
-	readBuf := make([]byte, 1024)
-	_, err = conn.Read(readBuf)
-	if err != nil {
-		fmt.Println("Error reading: ", err.Error())
-		os.Exit(1)
-	}
-
 	headerType := ""
 	var responseBody string
+	idx := 0
 	reader := bufio.NewReader(conn)
 	for {
-		fmt.Println("Reading...")
+		idx++
 		line, err := reader.ReadString('\n')
 		if err != nil {
 			break
@@ -42,33 +36,49 @@ func main() {
 		if line == "\r\n" {
 			break
 		}
-		if strings.HasPrefix(line, "User-Agent: ") {
-			headerType = "User-Agent: "
-			responseBody = strings.TrimPrefix(line, "User-Agent: ")
+		if idx == 1 {
+			header := strings.Split(line, " ")[1]
+			fmt.Println("header: ", header)
+			command := strings.Split(header, "/")[1]
+			fmt.Println("command: ", command)
+
+			if command == "echo" {
+				headerType = "echo"
+				responseBody = strings.TrimPrefix(header, "/echo/")
+				fmt.Printf("echo responseBody: %s\n", responseBody)
+				break
+			} else if command == "user-agent" {
+				headerType = "user-agent"
+			}
+		} else {
+			if headerType == "user-agent" && strings.HasPrefix(line, "User-Agent: ") {
+				headerType = "User-Agent: "
+				responseBody = strings.TrimPrefix(line, "User-Agent: ")
+				fmt.Printf("User-Agent: responseBody: %s\n", responseBody)
+			}
 		}
-		if strings.HasPrefix(line, "/echo/") {
-			headerType = "echo"
-			responseBody = strings.TrimPrefix(line, "/echo/")
-		}
-		fmt.Println("Bottom Reading...")
 	}
-	fmt.Println("End reading...")
 
 	var response string
 	switch headerType {
 	case "":
+		fmt.Println("No header")
 		response = fmt.Sprintf("HTTP/1.1 200 OK\r\n\r\n")
 	case "echo":
-		response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(responseBody), responseBody)
+		fmt.Println("echo")
+		response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s\r\n\r\n", len(responseBody), responseBody)
 	case "User-Agent: ":
-		response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(responseBody), responseBody)
+		response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s\r\n\r\n", len(responseBody), responseBody)
 	default:
 		response = fmt.Sprintf("HTTP/1.1 404 Not Found\r\n\r\n")
 	}
 
+	fmt.Println("response: ", response)
 	_, err = conn.Write([]byte(response))
 	if err != nil {
 		fmt.Println("Error writing: ", err.Error())
 		os.Exit(1)
 	}
+
+	return
 }
