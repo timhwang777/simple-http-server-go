@@ -49,6 +49,8 @@ func main() {
 				break
 			} else if command == "user-agent" {
 				headerType = "user-agent"
+			} else {
+				headerType = header
 			}
 		} else {
 			if headerType == "user-agent" && strings.HasPrefix(line, "User-Agent: ") {
@@ -61,6 +63,9 @@ func main() {
 
 	var response string
 	switch headerType {
+	case "":
+		fmt.Println("No header")
+		response = fmt.Sprintf("HTTP/1.1 200 OK\r\n\r\n")
 	case "echo":
 		fmt.Println("echo")
 		response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s\r\n\r\n", len(responseBody), responseBody)
