@@ -55,8 +55,9 @@ func main() {
 		} else {
 			if headerType == "user-agent" && strings.HasPrefix(line, "User-Agent: ") {
 				headerType = "User-Agent: "
-				responseBody = strings.TrimPrefix(line, "User-Agent: ")
+				responseBody = strings.TrimSpace(strings.TrimPrefix(line, "User-Agent: "))
 				fmt.Printf("User-Agent: responseBody: %s\n", responseBody)
+				fmt.Printf("User-Agent len: %d\n", len(responseBody))
 			}
 		}
 	}
@@ -68,9 +69,9 @@ func main() {
 		response = fmt.Sprintf("HTTP/1.1 200 OK\r\n\r\n")
 	case "echo":
 		fmt.Println("echo")
-		response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s\r\n\r\n", len(responseBody), responseBody)
+		response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(responseBody), responseBody)
 	case "User-Agent: ":
-		response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s\r\n\r\n", len(responseBody), responseBody)
+		response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(responseBody), responseBody)
 	default:
 		response = fmt.Sprintf("HTTP/1.1 404 Not Found\r\n\r\n")
 	}
