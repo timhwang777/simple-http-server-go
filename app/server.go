@@ -91,6 +91,7 @@ func handleConnection(conn net.Conn, dir string) {
 	idx := 0
 	reader := bufio.NewReader(conn)
 
+loop:
 	for {
 		idx++
 		line, err := reader.ReadString('\n')
@@ -124,6 +125,7 @@ func handleConnection(conn net.Conn, dir string) {
 				case "POST":
 					filename := strings.TrimPrefix(path, "/files/")
 					response = handlePost(reader, filename, dir)
+					break loop
 				}
 			} else {
 				headerType = path
