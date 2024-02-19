@@ -4,11 +4,44 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"os"
 	"path/filepath"
 	"strings"
 )
+
+func handlePost(conn net.Conn, filename string, dir string) string {
+	filepath := filepath.Join(dir, filename)
+
+	// Read the rest of the request to get the body
+	body, err := ioutil.ReadAll(conn)
+	if err != nil {
+		return "HTTP/1.1 500 Internal Server Error\r\n\r\n"
+	}
+
+	// Write the body to the file
+	err = ioutil.WriteFile(filepath, body, 0644)
+	if err != nil {
+		return "HTTP/1.1 500 Internal Server Error\r\n\r\n"
+	}
+
+	return "HTTP/1.1 201 Created\r\n\r\n"
+}
+
+func getAndHandleFiles(conn net.Conn, filename string, dir string) string {
+	filepath := filepath.Join(dir, filename)
+	_, err := os.Stat(filepath)
+	if os.IsNotExist(err) {
+		return "HTTP/1.1 404 Not Found\r\n\r\n"
+	}
+	content, err := os.ReadFile(filepath)
+	if err != nil {
+		return "HTTP/1.1 404 Not Found\r\n\r\n"
+	}
+
+	return fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: %d\r\n\r\n%s\r\n", len(content), string(content))
+}
 
 func handleConnection(conn net.Conn, dir string) {
 	defer conn.Close()
@@ -29,24 +62,29 @@ func handleConnection(conn net.Conn, dir string) {
 		}
 		// first line for header
 		if idx == 1 {
-			header := strings.Split(line, " ")[1]
-			fmt.Println("header: ", header)
-			command := strings.Split(header, "/")[1]
-			fmt.Println("command: ", command)
+			header := strings.Split(line, " ")
+			method := header[0]
+			path := header[1]
+			command := strings.Split(path, "/")[1]
+
+			if method == "POST" && strings.HasPrefix(path, "/files/") {
+				filename := strings.TrimPrefix(path, "/files/")
+				response = handlePost(conn, filename, dir)
+			}
 
 			if command == "echo" {
 				headerType = "echo"
-				responseBody = strings.TrimPrefix(header, "/echo/")
+				responseBody = strings.TrimPrefix(path, "/echo/")
 				fmt.Printf("echo responseBody: %s\n", responseBody)
 				break
 			} else if command == "user-agent" {
 				headerType = "user-agent"
 			} else if command == "files" {
 				headerType = "files"
-				filename := strings.TrimPrefix(header, "/files/")
+				filename := strings.TrimPrefix(path, "/files/")
 				response = getAndHandleFiles(conn, filename, dir)
 			} else {
-				headerType = header
+				headerType = path
 			}
 		} else {
 			if headerType == "user-agent" && strings.HasPrefix(line, "User-Agent: ") {
@@ -78,20 +116,6 @@ func handleConnection(conn net.Conn, dir string) {
 		fmt.Println("Error writing: ", err.Error())
 		os.Exit(1)
 	}
-}
-
-func getAndHandleFiles(conn net.Conn, filename string, dir string) string {
-	filepath := filepath.Join(dir, filename)
-	_, err := os.Stat(filepath)
-	if os.IsNotExist(err) {
-		return "HTTP/1.1 404 Not Found\r\n\r\n"
-	}
-	content, err := os.ReadFile(filepath)
-	if err != nil {
-		return "HTTP/1.1 404 Not Found\r\n\r\n"
-	}
-
-	return fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: %d\r\n\r\n%s\r\n", len(content), string(content))
 }
 
 func main() {
