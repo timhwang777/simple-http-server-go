@@ -13,6 +13,7 @@ import (
 
 func handlePost(conn net.Conn, filename string, dir string) string {
 	fmt.Println("handlePost: ", filename)
+	fmt.Println("Directory: ", dir)
 
 	filepath := filepath.Join(dir, filename)
 
