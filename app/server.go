@@ -12,6 +12,8 @@ import (
 )
 
 func handlePost(conn net.Conn, filename string, dir string) string {
+	fmt.Println("handlePost: ", filename)
+
 	filepath := filepath.Join(dir, filename)
 
 	// Read the rest of the request to get the body
