@@ -67,11 +67,6 @@ func handleConnection(conn net.Conn, dir string) {
 			path := header[1]
 			command := strings.Split(path, "/")[1]
 
-			if method == "POST" && strings.HasPrefix(path, "/files/") {
-				filename := strings.TrimPrefix(path, "/files/")
-				response = handlePost(conn, filename, dir)
-			}
-
 			if command == "echo" {
 				headerType = "echo"
 				responseBody = strings.TrimPrefix(path, "/echo/")
@@ -83,6 +78,9 @@ func handleConnection(conn net.Conn, dir string) {
 				headerType = "files"
 				filename := strings.TrimPrefix(path, "/files/")
 				response = getAndHandleFiles(conn, filename, dir)
+			} else if method == "POST" && strings.HasPrefix(path, "/files/") {
+				filename := strings.TrimPrefix(path, "/files/")
+				response = handlePost(conn, filename, dir)
 			} else {
 				headerType = path
 			}
