@@ -26,11 +26,15 @@ func handlePost(conn net.Conn, headers map[string]string, filename string, dir s
 		return "HTTP/1.1 400 Bad Request\r\n\r\n"
 	}
 
+	fmt.Println("contentLengthStr: ", contentLengthStr)
+
 	// Convert the Content-Length to an integer
 	contentLength, err := strconv.Atoi(contentLengthStr)
 	if err != nil {
 		return "HTTP/1.1 400 Bad Request\r\n\r\n"
 	}
+
+	fmt.Println("contentLength: ", contentLength)
 
 	// Create a limited reader and read the body
 	body, err := ioutil.ReadAll(io.LimitReader(conn, int64(contentLength)))
