@@ -78,6 +78,7 @@ func handleConnection(conn net.Conn, dir string) {
 	headers := make(map[string]string)
 
 	for {
+		idx++
 		line, err := reader.ReadString('\n')
 		if err != nil {
 			break
@@ -87,7 +88,7 @@ func handleConnection(conn net.Conn, dir string) {
 		}
 
 		// parse headers
-		if idx != 1 {
+		if idx != 0 {
 			parts := strings.SplitN(line, ": ", 2)
 			if len(parts) == 2 {
 				headers[parts[0]] = strings.TrimSpace(parts[1])
@@ -129,8 +130,6 @@ func handleConnection(conn net.Conn, dir string) {
 				fmt.Printf("User-Agent len: %d\n", len(responseBody))
 			}
 		}
-
-		idx++
 	}
 
 	switch headerType {
