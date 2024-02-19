@@ -4,21 +4,35 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
-func handlePost(conn net.Conn, filename string, dir string) string {
+func handlePost(conn net.Conn, headers map[string]string, filename string, dir string) string {
 	fmt.Println("handlePost: ", filename)
 	fmt.Println("Directory: ", dir)
 
 	filepath := filepath.Join(dir, filename)
 
-	// Read the rest of the request to get the body
-	body, err := ioutil.ReadAll(conn)
+	// Get the Content-Length header
+	contentLengthStr, ok := headers["Content-Length"]
+	if !ok {
+		return "HTTP/1.1 400 Bad Request\r\n\r\n"
+	}
+
+	// Convert the Content-Length to an integer
+	contentLength, err := strconv.Atoi(contentLengthStr)
+	if err != nil {
+		return "HTTP/1.1 400 Bad Request\r\n\r\n"
+	}
+
+	// Create a limited reader and read the body
+	body, err := ioutil.ReadAll(io.LimitReader(conn, int64(contentLength)))
 	if err != nil {
 		return "HTTP/1.1 500 Internal Server Error\r\n\r\n"
 	}
@@ -56,6 +70,8 @@ func handleConnection(conn net.Conn, dir string) {
 	var response string
 	idx := 0
 	reader := bufio.NewReader(conn)
+	headers := make(map[string]string)
+
 	for {
 		idx++
 		line, err := reader.ReadString('\n')
@@ -65,6 +81,15 @@ func handleConnection(conn net.Conn, dir string) {
 		if line == "\r\n" {
 			break
 		}
+
+		// parse headers
+		if idx != 1 {
+			parts := strings.SplitN(line, ": ", 2)
+			if len(parts) == 2 {
+				headers[parts[0]] = strings.TrimSpace(parts[1])
+			}
+		}
+
 		// first line for header
 		if idx == 1 {
 			header := strings.Split(line, " ")
@@ -87,7 +112,7 @@ func handleConnection(conn net.Conn, dir string) {
 					response = getAndHandleFiles(conn, filename, dir)
 				case "POST":
 					filename := strings.TrimPrefix(path, "/files/")
-					response = handlePost(conn, filename, dir)
+					response = handlePost(conn, headers, filename, dir)
 				}
 			} else {
 				headerType = path
