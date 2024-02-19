@@ -78,7 +78,6 @@ func handleConnection(conn net.Conn, dir string) {
 	headers := make(map[string]string)
 
 	for {
-		idx++
 		line, err := reader.ReadString('\n')
 		if err != nil {
 			break
@@ -130,6 +129,8 @@ func handleConnection(conn net.Conn, dir string) {
 				fmt.Printf("User-Agent len: %d\n", len(responseBody))
 			}
 		}
+
+		idx++
 	}
 
 	switch headerType {
