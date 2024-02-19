@@ -16,6 +16,7 @@ import (
 func handlePost(conn net.Conn, headers map[string]string, filename string, dir string) string {
 	fmt.Println("handlePost: ", filename)
 	fmt.Println("Directory: ", dir)
+	fmt.Println("Headers: ", headers)
 
 	filepath := filepath.Join(dir, filename)
 
@@ -84,11 +85,11 @@ func handleConnection(conn net.Conn, dir string) {
 
 		// parse headers
 		if idx != 1 {
-			fmt.Println("Parsing headers!")
 			parts := strings.SplitN(line, ": ", 2)
 			if len(parts) == 2 {
 				headers[parts[0]] = strings.TrimSpace(parts[1])
 			}
+			fmt.Println("Parsing headers: ", headers)
 		}
 
 		// first line for header
