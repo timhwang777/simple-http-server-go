@@ -44,7 +44,7 @@ func handleConnection(conn net.Conn, dir string) {
 			} else if command == "files" {
 				headerType = "files"
 				filename := strings.TrimPrefix(header, "/files/")
-				response = getandHandleFiles(conn, filename, dir)
+				response = getAndHandleFiles(conn, filename, dir)
 			} else {
 				headerType = header
 			}
@@ -80,7 +80,7 @@ func handleConnection(conn net.Conn, dir string) {
 	}
 }
 
-func getandHandleFiles(conn net.Conn, filename string, dir string) string {
+func getAndHandleFiles(conn net.Conn, filename string, dir string) string {
 	filepath := filepath.Join(dir, filename)
 	_, err := os.Stat(filepath)
 	if os.IsNotExist(err) {
