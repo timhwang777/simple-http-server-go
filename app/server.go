@@ -23,6 +23,8 @@ func handlePost(conn net.Conn, filename string, dir string) string {
 		return "HTTP/1.1 500 Internal Server Error\r\n\r\n"
 	}
 
+	fmt.Println("body: ", string(body))
+
 	// Write the body to the file
 	err = ioutil.WriteFile(filepath, body, 0644)
 	if err != nil {
