@@ -58,10 +58,12 @@ func handlePost(reader *bufio.Reader, filename string, dir string) string {
 	fmt.Println("body: ", string(body))
 
 	// Write the body to the file
-	err = ioutil.WriteFile(filepath, body, 0644)
+	file, err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
 		return "HTTP/1.1 500 Internal Server Error\r\n\r\n"
 	}
+	defer file.Close()
+	file.Write(body)
 
 	return "HTTP/1.1 201 Created\r\n\r\n"
 }
