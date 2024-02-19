@@ -84,6 +84,7 @@ func handleConnection(conn net.Conn, dir string) {
 
 		// parse headers
 		if idx != 1 {
+			fmt.Println("Parsing headers!")
 			parts := strings.SplitN(line, ": ", 2)
 			if len(parts) == 2 {
 				headers[parts[0]] = strings.TrimSpace(parts[1])
