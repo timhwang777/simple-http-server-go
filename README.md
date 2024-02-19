@@ -1,38 +1,35 @@
-[![progress-banner](https://backend.codecrafters.io/progress/http-server/27f975e2-a84f-4cf0-9153-9b617d4a289c)](https://app.codecrafters.io/users/codecrafters-bot?r=2qF)
+# Simple HTTP Server in Golang
 
-This is a starting point for Go solutions to the
-["Build Your Own HTTP server" Challenge](https://app.codecrafters.io/courses/http-server/overview).
+![Static Badge](https://img.shields.io/badge/Go-Solutions-blue?logo=Go
+)
 
-[HTTP](https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol) is the
-protocol that powers the web. In this challenge, you'll build a HTTP/1.1 server
-that is capable of serving multiple clients.
+## Table of Contents
+1. [About the Project](#about-the-project)
+2. [Getting Started](#getting-started)
+    - [Prerequisites](#prerequisites)
+3. [Author](#author)
 
-Along the way you'll learn about TCP servers,
-[HTTP request syntax](https://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html),
-and more.
+## About the Project
 
-**Note**: If you're viewing this repo on GitHub, head over to
-[codecrafters.io](https://codecrafters.io) to try the challenge.
+This project is a simple HTTP server written in Go. It listens for incoming connections and handles them concurrently. The server supports three commands: `echo`, `user-agent`, and `files`. 
 
-# Passing the first stage
+- The `echo` command echoes back the path after the `/echo/` in the response body.
+- The `user-agent` command returns the User-Agent from the request headers.
+- The `files` command supports both GET and POST methods. The GET method reads a file from the server's directory and returns its content. The POST method receives a file from the client and saves it to the server's directory.
 
-The entry point for your HTTP server implementation is in `app/server.go`. Study
-and uncomment the relevant code, and push your changes to pass the first stage:
+The server is designed to be simple and easy to understand, making it a great starting point for anyone interested in learning about network programming in Go.
 
-```sh
-git add .
-git commit -m "pass 1st stage" # any msg
-git push origin master
-```
+## Getting Started
 
-Time to move on to the next stage!
+To get a local copy up and running, follow these simple steps:
 
-# Stage 2 & beyond
+### Prerequisites
 
-Note: This section is for stages 2 and beyond.
+- Go: You need to have Go installed on your machine to run this server. You can download it from the official website: [https://golang.org/dl/](https://golang.org/dl/)
 
-1. Ensure you have `go (1.19)` installed locally
-1. Run `./your_server.sh` to run your program, which is implemented in
-   `app/server.go`.
-1. Commit your changes and run `git push origin master` to submit your solution
-   to CodeCrafters. Test output will be streamed to your terminal.
+To run the server, navigate to the directory containing the `server.go` file in your terminal and run the command `go run server.go`.
+
+Alternatively, you can execute the `your_server.sh` shell script.
+
+## Author
+Timothy Hwang
